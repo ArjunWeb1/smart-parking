@@ -1,0 +1,28 @@
+{
+  "name": "smart-parking-backend",
+  "version": "1.0.0",
+  "description": "Backend for AI-Enabled Smart Parking Management System",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "keywords": [
+    "smart-parking",
+    "nodejs",
+    "express",
+    "mongodb",
+    "firebase"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.2",
+    "mongoose": "^8.24.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
