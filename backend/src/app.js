@@ -1,20 +1,30 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-
+const protect = require("./middleware/authMiddleware");
 const authRoutes = require("./routes/authRoutes");
+const vehicleRoutes = require("./routes/vehicleRoutes");
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use("/api/auth",authRoutes);
+app.use("/api/vehicles",vehicleRoutes);
 
 // Test route
-app.get("/", (req, res) => {
+app.get("/api/protected",protect, (req, res) => {
     res.json({
-        message: "AI Smart Parking System Backend is running"
+        message: "You have accessed to the protected route",
+        user:req.user
     });
 });
+
+//Home
+app.get("/",(req,res)=>{
+    res.json({
+        message:"AI Smart Parking System Backend is running"
+    })
+})
 
 module.exports = app;
