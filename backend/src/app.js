@@ -1,10 +1,12 @@
 const express = require("express");
 const cors = require("cors");
-require("dotenv").config();
 const protect = require("./middleware/authMiddleware");
 const authRoutes = require("./routes/authRoutes");
 const vehicleRoutes = require("./routes/vehicleRoutes");
+const adminMiddleware = require("./middleware/adminMiddleware");
 const app = express();
+require("dotenv").config();
+
 
 // Middleware
 app.use(cors());
@@ -20,6 +22,12 @@ app.get("/api/protected",protect, (req, res) => {
     });
 });
 
+app.get("/api/admin/test",protect,adminMiddleware,(req,res)=>{
+    res.status(200).json({
+        message:"Admin access successfully",
+        user:req.user
+    });  
+});
 //Home
 app.get("/",(req,res)=>{
     res.json({

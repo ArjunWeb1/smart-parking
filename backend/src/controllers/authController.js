@@ -86,7 +86,7 @@ const login = async(req,res)=>{
             },
             process.env.JWT_SECRET,
             {
-                expiresIn:"1d"
+                expiresIn:"7d"
             }
         );
         
@@ -108,7 +108,54 @@ const login = async(req,res)=>{
     }
 };
 
+const createAdmin = async(req,res)=>{
+    try{
+        const setupSecret = req.headers["x-admin-setup-secret"]
+        if(!setupSecret || setupSecret !== process.env.ADMIN_SETUP_SECRET){
+            return res.status(403).json({
+                message:"Invalid admin setup authroization"
+            });
+        }
+        const {name,email,password} = req.body;
+        if(!name||!email||!password){
+            return res.status(400).json({
+                message:"Name, email and password are required"
+            });
+        }
+
+        const existingUser = await User.findOne({email});
+        if(existingUser){
+            return res.status(409).json({
+                message:"User with this email already exists"
+            });
+        }
+        const hashpassword = await bcrypt.hash(password,10);
+        const admin = await User.create({
+            name,
+            email,
+            password:hashpassword,
+            role:"admin"
+        });
+
+        res.status(201).json({
+            message:"Admin created successfully",
+            admin:{
+                id:admin._id,
+                name:admin.name,
+                email:admin.email,
+                role:admin.role
+            }
+        });
+    }catch(error){
+        res.status(500).json({
+            message:"Admin creation failed",
+            error:error.message
+        });
+    }
+}
+
 module.exports = {
     register,
-    login
+    login,
+    createAdmin
 };
