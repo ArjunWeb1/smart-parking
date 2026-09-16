@@ -1,0 +1,13 @@
+Phase 1: Backend Setup              Done
+Phase 2: Authentication/JWT         Done
+Phase 3: Vehicle Management         Done
+Phase 4: Admin Authentication       Done
+Phase 5: Parking Slot Management    Working
+Phase 6: Booking                    
+Phase 7: Waiting Queue              
+Phase 8: Parking Session            
+Phase 9: Payment                    
+Phase 10: Firebase + ESP32          
+Phase 11: QR Verification           
+Phase 12: AI Recommendation         
+Phase 13: Admin Dashboard/Reports   
