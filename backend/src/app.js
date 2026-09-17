@@ -5,6 +5,8 @@ const authRoutes = require("./routes/authRoutes");
 const vehicleRoutes = require("./routes/vehicleRoutes");
 const parkingRoutes = require("./routes/parkingRoutes");
 const adminMiddleware = require("./middleware/adminMiddleware");
+const bookingRoutes = require("./routes/bookingRoutes");
+
 const app = express();
 
 require("dotenv").config();
@@ -15,6 +17,7 @@ app.use(express.json());
 app.use("/api/auth",authRoutes);
 app.use("/api/vehicles",vehicleRoutes);
 app.use("/api/parking",parkingRoutes);
+app.use("/api/bookings",bookingRoutes);
 
 app.get("/api/protected",protect,(req,res)=>{
     res.json({
