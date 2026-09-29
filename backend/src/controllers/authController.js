@@ -12,9 +12,9 @@ const register = async (req,res)=>{
             });
         }
 
-        if (!["student","faculty"].includes(role)){
+        if (!["student","faculty","public"].includes(role)){
             return res.status(400).json({
-                message:"Role must be student or faculty"
+                message:"Role must be student, faculty or public"
             });
         }
 

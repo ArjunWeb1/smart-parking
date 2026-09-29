@@ -2,33 +2,41 @@ const mongoose = require("mongoose");
 
 const parkingSlotSchema = new mongoose.Schema(
     {
-        slotNumber:{
-            type:String,
-            required:true,
-            unique:true
+        slotNumber: {
+            type: String,
+            required: true,
+            unique: true
         },
-        zone:{
-            type:String,
-            requried:true
+
+        zone: {
+            type: String,
+            required: true
         },
-        vehicleType:{
-            type:String,
-            enum:["car","bike"],
-            requried:true
+
+        parkingType: {
+            type: String,
+            enum: ["campus", "public"],
+            required: true
         },
-        isEV:{
-            type:Boolean,
-            default:false
+
+        vehicleType: {
+            type: String,
+            enum: ["car", "bike"],
+            required: true
         },
-        status:{
-            type:String,
-            enum:["available","occupied","maintenance"],
-            default:"available"
+
+        isEV: {
+            type: Boolean,
+            default: false
+        },
+
+        status: {
+            type: String,
+            enum: ["available", "reserved", "occupied", "maintenance"],
+            default: "available"
         }
     },
-    {
-        timestamps:true
-    }
+    { timestamps: true }
 );
 
-module.exports = mongoose.model("ParkingSlot",parkingSlotSchema);
+module.exports = mongoose.model("ParkingSlot", parkingSlotSchema);

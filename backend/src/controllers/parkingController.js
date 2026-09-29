@@ -1,18 +1,19 @@
 const ParkingSlot = require("../models/ParkingSlot");
-
+// Create Parking Slot
 const createSlot = async (req, res) => {
     try {
         const {
             slotNumber,
             zone,
+            parkingType,
             vehicleType,
             isEV,
             status
         } = req.body;
 
-        if (!slotNumber || !zone || !vehicleType) {
+        if (!slotNumber || !zone || !parkingType || !vehicleType) {
             return res.status(400).json({
-                message: "Slot number, zone, and vehicle type are required"
+                message: "Slot number, zone, parking type, and vehicle type are required"
             });
         }
 
@@ -29,6 +30,7 @@ const createSlot = async (req, res) => {
         const slot = await ParkingSlot.create({
             slotNumber,
             zone,
+            parkingType,
             vehicleType,
             isEV: isEV ?? false,
             status: status || "available"
@@ -46,6 +48,7 @@ const createSlot = async (req, res) => {
     }
 };
 
+// Get All Parking Slots
 const getAllSlots = async (req, res) => {
     try {
         const slots = await ParkingSlot.find();
@@ -62,6 +65,7 @@ const getAllSlots = async (req, res) => {
     }
 };
 
+// Get Single Parking Slot
 const getSlot = async (req, res) => {
     try {
         const slot = await ParkingSlot.findById(req.params.id);
@@ -83,11 +87,30 @@ const getSlot = async (req, res) => {
     }
 };
 
+// Update Parking Slot
 const updateSlot = async (req, res) => {
     try {
+        console.log("UPDATE BODY:", req.body);
+
+        const {
+            slotNumber,
+            zone,
+            parkingType,
+            vehicleType,
+            isEV,
+            status
+        } = req.body;
+
         const slot = await ParkingSlot.findByIdAndUpdate(
             req.params.id,
-            req.body,
+            {
+                slotNumber,
+                zone,
+                parkingType,
+                vehicleType,
+                isEV,
+                status
+            },
             {
                 new: true,
                 runValidators: true
@@ -112,6 +135,7 @@ const updateSlot = async (req, res) => {
     }
 };
 
+// Delete Parking Slot
 const deleteSlot = async (req, res) => {
     try {
         const slot = await ParkingSlot.findByIdAndDelete(
