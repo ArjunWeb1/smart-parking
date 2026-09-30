@@ -1,17 +1,12 @@
 const express = require("express");
 const router = express.Router();
-
 const ParkingSession = require("../models/ParkingSession");
 const Booking = require("../models/Booking");
 const ParkingSlot = require("../models/ParkingSlot");
-const protect = require("../middleware/authMiddleware");
 
-
-//start parkig sesssion
-router.post("/start",protect,async(req,res)=>{
+router.post("/start",async(req,res)=>{
     try{
         const {booking} = req.body;
-
         if(!booking){
             return res.status(400).json({
                 message:"Booking ID is required"
@@ -20,7 +15,6 @@ router.post("/start",protect,async(req,res)=>{
 
         const existingBooking = await Booking.findOne({
             _id:booking,
-            user:req.user.id,
             status:"confirmed"
         });
         if(!existingBooking){
@@ -29,61 +23,65 @@ router.post("/start",protect,async(req,res)=>{
             });
         }
 
+        const slot = await ParkingSlot.findById(existingBooking.parkingSlot);
+        if(!slot){
+            return res.status(404).json({
+                message:"Parking slot not found"
+            });
+        }
+
+        if(slot.parkingType !== "public"){
+            return res.status(404).json({
+                message:"Parking session is only for public parking"
+            });
+        }
+
         const existingSession = await ParkingSession.findOne({
-            booking,
+            booking:existingBooking._id,
             status:"active"
         });
         if(existingSession){
             return res.status(400).json({
-                message:"Parking session alredy active"
+                message:"Parking session already active"
             });
         }
 
         const session = await ParkingSession.create({
-            user:req.user.id,
-            vehicle:existingBooking.vehicle,
+            booking:existingBooking._id,
             parkingSlot:existingBooking.parkingSlot,
-            booking:existingBooking._id
+            vehicleNumber:existingBooking.vehicleNumber,
+            entryTime:new Date()
         });
-        await ParkingSlot.findByIdAndUpdate(
-            existingBooking.parkingSlot,
-            {
-                status:"occupied"
-            }
-        );
+        slot.status = "occupied";
+        await slot.save();
 
         res.status(201).json({
-            message:"Parking session started",
+            message:"Public parking session started",
             session
-        })
+        });
     }catch(error){
         res.status(500).json({
-            messaage:"Failed to start parking session",
+            message:"Failed to start parking session",
             error:error.message
         });
     }
 });
 
-//Get active session
-router.get("/active",protect,async(req,res)=>{
+router.get("/active",async(req,res)=>{
     try{
         const session = await ParkingSession.findOne({
-            user:req.user.id,
             status:"active"
         })
-            .populate("vehicle")
-            .populate("parkingSlot")
-            .populate("booking");
-        
+        .populate("booking")
+        .populate("parkingSlot");
+
         if(!session){
             return res.status(404).json({
                 message:"No active parking session"
             });
         }
-        
-        return res.status(200).json({
-            session
-        });
+
+        res.status(200).json({session});
     }catch(error){
         res.status(500).json({
             message:"Failed to fetch parking session",
@@ -92,15 +90,12 @@ router.get("/active",protect,async(req,res)=>{
     }
 });
 
-//ENd parkgin session
-router.put("/:id/end",protect,async(req,res)=>{
+router.put("/:id/end",async(req,res)=>{
     try{
         const session = await ParkingSession.findOne({
             _id:req.params.id,
-            user:req.user.id,
             status:"active"
-        });;
-
+        });
         if(!session){
             return res.status(404).json({
                 message:"Active parking session not found"
@@ -109,32 +104,24 @@ router.put("/:id/end",protect,async(req,res)=>{
 
         session.exitTime = new Date();
         session.status = "completed";
+
         await session.save();
 
-        await Booking.findByIdAndUpdate(
-            session.booking,
-            {
-                status:"completed"
-            }
-        )
+        await Booking.findByIdAndUpdate(session.booking,{status:"completed"});
 
-        await ParkingSlot.findByIdAndUpdate(
-            session.parkingSlot,
-            {
-                status:"available"
-            }
-        );
-
+        await ParkingSlot.findByIdAndUpdate(session.parkingSlot,{status:"available"});
+        
         res.status(200).json({
-            message:"Parking session completed",
+            message:"Public parking session completed",
             session
         });
     }catch(error){
         res.status(500).json({
             message:"Failed to end parking session",
             error:error.message
-        });
+        })
     }
 });
+
 
 module.exports = router;

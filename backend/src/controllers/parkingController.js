@@ -160,10 +160,29 @@ const deleteSlot = async (req, res) => {
     }
 };
 
+const getPublicSlots = async(req,res)=>{
+    try{
+        const slots = await ParkingSlot.find({
+            parkingType:"public"
+        });
+
+        res.status(200).json({
+            count:slots.length,
+            slots
+        });
+    }catch(error){
+        res.status(500).josn({
+            message:"Failed to fetch public parking slots",
+            error:error.message
+        });
+    }
+};
+
 module.exports = {
     createSlot,
     getAllSlots,
     getSlot,
     updateSlot,
-    deleteSlot
+    deleteSlot,
+    getPublicSlots
 };

@@ -1,37 +1,36 @@
 const express = require("express");
+
 const router = express.Router();
 
 const Booking = require("../models/Booking");
 const ParkingSlot = require("../models/ParkingSlot");
-const Vehicle = require("../models/Vehicle");
+const WaitingQueue = require("../models/WaitingQueue");
 
-const protect = require("../middleware/authMiddleware");
-
-
-// Create Booking
-router.post("/", protect, async (req, res) => {
+// Create Public Booking
+router.post("/", async (req, res) => {
     try {
-        const { vehicle, parkingSlot, bookingDate } = req.body;
+        const {
+            name,
+            phone,
+            vehicleNumber,
+            vehicleType,
+            parkingSlot,
+            bookingDate
+        } = req.body;
 
-        if (!vehicle || !parkingSlot || !bookingDate) {
+        if (
+            !name ||
+            !phone ||
+            !vehicleNumber ||
+            !vehicleType ||
+            !parkingSlot ||
+            !bookingDate
+        ) {
             return res.status(400).json({
-                message: "Vehicle, parking slot and booking date are required"
+                message: "All booking details are required"
             });
         }
 
-        // Check vehicle belongs to logged-in user
-        const userVehicle = await Vehicle.findOne({
-            _id: vehicle,
-            owner: req.user.id
-        });
-
-        if (!userVehicle) {
-            return res.status(403).json({
-                message: "Vehicle does not belong to this user"
-            });
-        }
-
-        // Check parking slot
         const slot = await ParkingSlot.findById(parkingSlot);
 
         if (!slot) {
@@ -40,58 +39,107 @@ router.post("/", protect, async (req, res) => {
             });
         }
 
-        if (slot.status !== "available") {
+        // Only public parking can be booked
+        if (slot.parkingType !== "public") {
             return res.status(400).json({
-                message: "This parking slot is already booked"
+                message: "Only public parking slots can be booked"
             });
         }
 
-        // Check confirmed booking
-        const existingBooking = await Booking.findOne({
-            parkingSlot,
-            status: "confirmed"
-        });
-
-        if (existingBooking) {
-            return res.status(409).json({
-                message: "This parking slot is already booked"
+        // Vehicle type must match slot
+        if (slot.vehicleType !== vehicleType) {
+            return res.status(400).json({
+                message: "Vehicle type does not match this parking slot"
             });
         }
 
-        // Create booking
+        // Check if selected slot is unavailable
+        if (slot.status !== "available") {
+
+            // Check another matching public slot
+            const availableSlot = await ParkingSlot.findOne({
+                parkingType: "public",
+                vehicleType: vehicleType,
+                status: "available"
+            });
+
+            // Another slot is available
+            if (availableSlot) {
+                return res.status(400).json({
+                    message: "Selected slot is not available. Please choose another available slot",
+                    availableSlot: availableSlot.slotNumber
+                });
+            }
+
+            // Check if vehicle is already in queue
+            const existingQueue = await WaitingQueue.findOne({
+                phone,
+                vehicleNumber: vehicleNumber.toUpperCase(),
+                status: "waiting"
+            });
+
+            if (existingQueue) {
+                return res.status(409).json({
+                    message: "Vehicle is already in the waiting queue",
+                    queuePosition: existingQueue.position
+                });
+            }
+
+            // Get next queue position
+            const queueCount = await WaitingQueue.countDocuments({
+                vehicleType,
+                status: "waiting"
+            });
+
+            // Create queue entry
+            const queueEntry = await WaitingQueue.create({
+                name,
+                phone,
+                vehicleNumber,
+                vehicleType,
+                position: queueCount + 1
+            });
+
+            return res.status(201).json({
+                message: "No public slot is available. Added to waiting queue",
+                queuePosition: queueEntry.position,
+                queueEntry
+            });
+        }
+
+        // Slot is available → create booking
         const booking = await Booking.create({
-            user: req.user.id,
-            vehicle,
+            name,
+            phone,
+            vehicleNumber,
+            vehicleType,
             parkingSlot,
             bookingDate
         });
 
-        // Mark slot as reserved
+        // Reserve the slot
         slot.status = "reserved";
         await slot.save();
 
         res.status(201).json({
-            message: "Booking created successfully",
+            message: "Public parking booking created successfully",
             booking
         });
 
     } catch (error) {
         res.status(500).json({
-            message: "Failed to create booking",
+            message: "Failed to create public booking",
             error: error.message
         });
     }
 });
 
 
-// Get My Bookings
-router.get("/", protect, async (req, res) => {
+// Get All Bookings
+router.get("/", async (req, res) => {
     try {
-        const bookings = await Booking.find({
-            user: req.user.id
-        })
-        .populate("vehicle")
-        .populate("parkingSlot");
+        const bookings = await Booking.find()
+            .populate("parkingSlot");
 
         res.status(200).json({
             count: bookings.length,
@@ -101,54 +149,6 @@ router.get("/", protect, async (req, res) => {
     } catch (error) {
         res.status(500).json({
             message: "Failed to fetch bookings",
-            error: error.message
-        });
-    }
-});
-
-
-// Cancel Booking
-router.put("/:id/cancel", protect, async (req, res) => {
-    try {
-        const booking = await Booking.findById(req.params.id);
-
-        if (!booking) {
-            return res.status(404).json({
-                message: "Booking does not exist"
-            });
-        }
-
-        if (booking.user.toString() !== req.user.id) {
-            return res.status(403).json({
-                message: "You cannot cancel this booking"
-            });
-        }
-
-        if (booking.status === "cancelled") {
-            return res.status(400).json({
-                message: "Booking is already cancelled"
-            });
-        }
-
-        booking.status = "cancelled";
-        await booking.save();
-
-        // Make slot available again
-        const slot = await ParkingSlot.findById(booking.parkingSlot);
-
-        if (slot) {
-            slot.status = "available";
-            await slot.save();
-        }
-
-        res.status(200).json({
-            message: "Booking cancelled successfully",
-            booking
-        });
-
-    } catch (error) {
-        res.status(500).json({
-            message: "Failed to cancel booking",
             error: error.message
         });
     }

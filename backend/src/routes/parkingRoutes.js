@@ -5,13 +5,16 @@ const {
     createSlot,
     getAllSlots,
     getSlot,
-    updateSlot
+    updateSlot,
+    getPublicSlots
 } = require("../controllers/parkingController");
 
 const protect = require("../middleware/authMiddleware");
 const adminMiddleware = require("../middleware/adminMiddleware");
 
 router.get("/slots",protect,getAllSlots);
+
+router.get("/public-slots", getPublicSlots);
 
 router.get("/slots/:id",protect,getSlot);
 

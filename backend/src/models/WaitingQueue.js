@@ -1,35 +1,34 @@
-const Vehicle = require("./Vehicle");
-
-const mongoose = requrie("mongoose");
-
-const waitingQueueSchema = new mongoose.Shcema(
+const mongoose = require("mongoose");
+const waitingQueueSchema = new mongoose.Schema(
     {
-        user:{
-            type:mongoose.Shcema.Types.ObjectId,
-            ref:"User",
-            requried: true
+        name:{
+            type:String,
+            required:true,
+            trim:true
         },
 
-        vehicle:{
-            type:mongoose.Shcema.Types.ObjectId,
-            ref:"Vehicle",
-            reuqired:true
+        phone:{
+            type:String,
+            required:true,
+            trim:true
+        },
+
+        vehicleNumber:{
+            type:String,
+            required:true,
+            uppercase:true,
+            trim:true
         },
 
         vehicleType:{
             type:String,
-            enum:["car","bike"],
-            reuqired:true
+            enum: ["car","bike"],
+            required:true
         },
 
         position:{
             type:Number,
-            requried:true
-        },
-        
-        requestDate:{
-            type:Date,
-            default:Date.now
+            required:true
         },
 
         status:{
@@ -41,6 +40,6 @@ const waitingQueueSchema = new mongoose.Shcema(
     {
         timestamps:true
     }
-
 );
-module.exports = mongoose.model("WaitingQueue",waitingQueueSchema);
+
+module.exports = mongoose.model("waitingQueue",waitingQueueSchema);

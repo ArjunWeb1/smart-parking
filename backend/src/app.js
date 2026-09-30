@@ -35,7 +35,7 @@ app.get("/api/admin/test",protect,adminMiddleware,(req,res)=>{
 });
 
 app.get("/",(req,res)=>{
-    res.status({
+    res.status(200).json({
         message:"AI Smart Parking System Backend is running"
     });
 });

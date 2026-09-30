@@ -1,15 +1,9 @@
 const mongoose = require("mongoose");
 const parkingSessionShcema = new mongoose.Schema(
     {
-        user:{
+        booking:{
             type:mongoose.Schema.Types.ObjectId,
-            ref:"User",
-            required: true
-        },
-
-        vehicle:{
-            type:mongoose.Schema.Types.ObjectId,
-            ref:"Vehicle",
+            ref:"Booking",
             required:true
         },
 
@@ -19,20 +13,21 @@ const parkingSessionShcema = new mongoose.Schema(
             required:true
         },
 
-        booking:{
-            type:mongoose.Schema.Types.ObjectId,
-            ref:"Booking",
-            required:true
+        vehicleNumber:{
+            type:String,
+            required:true,
+            uppercase:true,
+            trim:true
         },
 
         entryTime:{
             type:Date,
             default:Date.now
         },
-
+        
         exitTime:{
             type:Date,
-            default:null
+            defualt:null
         },
 
         status:{
