@@ -2,220 +2,111 @@
 import { useState } from "react";
 import "./App.css";
 
-const campusSlots = [
-  { id: "A-01", type: "Car", mode: "Campus", status: "Available" },
-  { id: "A-02", type: "Bike", mode: "Campus", status: "Occupied" },
-  { id: "A-03", type: "Bike", mode: "Campus", status: "Available" },
-];
-
-const publicSlots = [
-  { id: "B-01", type: "Car", mode: "Public", status: "Available" },
-  { id: "B-02", type: "Bike", mode: "Public", status: "Occupied" },
-  { id: "B-03", type: "Bike", mode: "Public", status: "Available" },
+// Temporary campus slot data; later connect to the backend/Firebase.
+const slots = [
+  { id: "A-01", type: "Car", status: "Available" },
+  { id: "A-02", type: "Bike", status: "Occupied" },
+  { id: "A-03", type: "Bike", status: "Available" },
 ];
 
 function App() {
-  const [mode, setMode] = useState(null);
+  const [page, setPage] = useState("home");
+  const [role, setRole] = useState("");
 
-  const slots = mode === "campus" ? campusSlots : publicSlots;
-
-  if (!mode) {
+  // Home screen: select a parking mode.
+  if (page === "home") {
     return (
-      <main className="welcome-page">
-        <header className="welcome-header">
-          <div className="brand">
-            <span className="brand-icon">P</span>
-            <span>ParkSmart</span>
-          </div>
-          <span className="system-label">SMART PARKING SYSTEM</span>
-        </header>
+      <main className="container">
+        <h1>ParkSmart</h1>
+        <p>AI-Enabled Smart Parking Management System</p>
+        <h2>Select Parking Mode</h2>
 
-        <section className="welcome-content">
-          <div className="eyebrow">
-            <span className="live-dot" />
-            SMARTER PARKING. SIMPLER JOURNEYS.
-          </div>
+        <div className="cards">
+          <button onClick={() => setPage("roles")}>
+            <h2>🎓 Campus Parking</h2>
+            <p>For students, faculty and visitors</p>
+            <strong>Get Started →</strong>
+          </button>
 
-          <h1>
-            Find your space.
-            <br />
-            <span>Start your journey.</span>
-          </h1>
-
-          <p className="welcome-description">
-            Welcome to our AI-Enabled Smart Parking Management System.
-            Select your parking mode to continue.
-          </p>
-
-          <div className="mode-grid">
-            <button
-              className="mode-card campus-card"
-              onClick={() => setMode("campus")}
-            >
-              <div className="mode-icon">🎓</div>
-              <span className="mode-tag">CAMPUS ACCESS</span>
-              <h2>Campus Parking</h2>
-              <p>
-                Parking for students, faculty and campus visitors.
-              </p>
-              <ul>
-                <li>View parking availability</li>
-                <li>Campus QR or ID verification</li>
-                <li>No booking or parking payment</li>
-              </ul>
-              <span className="mode-action">
-                Enter Campus Parking <span>→</span>
-              </span>
-            </button>
-
-            <button
-              className="mode-card public-card"
-              onClick={() => setMode("public")}
-            >
-              <div className="mode-icon">🚘</div>
-              <span className="mode-tag">PUBLIC ACCESS</span>
-              <h2>Public Parking</h2>
-              <p>
-                Convenient paid parking for the general public.
-              </p>
-              <ul>
-                <li>Book an available parking slot</li>
-                <li>Join the waiting queue if needed</li>
-                <li>Track parking and pay at exit</li>
-              </ul>
-              <span className="mode-action">
-                Enter Public Parking <span>→</span>
-              </span>
-            </button>
-          </div>
-
-          <p className="welcome-footer">
-            ESP32 · Firebase · AI-Assisted Parking Management
-          </p>
-        </section>
+          <button disabled>
+            <h2>🚘 Public Parking</h2>
+            <p>Booking, queue and payment</p>
+            <strong>In Progress</strong>
+          </button>
+        </div>
       </main>
     );
   }
 
-  return (
-    <main className="dashboard-page">
-      <header className="dashboard-header">
-        <div className="brand">
-          <span className="brand-icon">P</span>
-          <span>ParkSmart</span>
-        </div>
-
-        <button className="back-button" onClick={() => setMode(null)}>
-          ← Change parking mode
+  // Campus screen: choose the user role.
+  if (page === "roles") {
+    return (
+      <main className="container">
+        <button className="back" onClick={() => setPage("home")}>
+          ← Back
         </button>
-      </header>
 
-      <section className="dashboard-content">
-        <div className="dashboard-heading">
-          <span className="eyebrow">
-            {mode === "campus" ? "CAMPUS ACCESS" : "PUBLIC ACCESS"}
-          </span>
-          <h1>
-            {mode === "campus" ? "Campus Parking" : "Public Parking"}
-          </h1>
-          <p>
-            {mode === "campus"
-              ? "Check campus slot status and complete the required verification."
-              : "Find a parking slot, manage your parking session and payment."}
-          </p>
+        <h1>Campus Parking</h1>
+        <p>Select your role to continue.</p>
+
+        <div className="cards">
+          {["Student", "Faculty", "Visitor"].map((item) => (
+            <button
+              key={item}
+              onClick={() => {
+                setRole(item);
+                setPage("dashboard");
+              }}
+            >
+              <h2>{item}</h2>
+              <strong>Continue →</strong>
+            </button>
+          ))}
         </div>
+      </main>
+    );
+  }
 
-        <div className="summary-grid">
-          <div className="summary-card">
-            <span>Total prototype slots</span>
-            <strong>{slots.length}</strong>
-          </div>
-          <div className="summary-card">
-            <span>Available</span>
-            <strong>
-              {slots.filter((slot) => slot.status === "Available").length}
-            </strong>
-          </div>
-          <div className="summary-card">
-            <span>Occupied</span>
-            <strong>
-              {slots.filter((slot) => slot.status === "Occupied").length}
-            </strong>
-          </div>
+  // Campus dashboard: display slot information.
+  return (
+    <main className="container">
+      <button className="back" onClick={() => setPage("roles")}>
+        ← Change Role
+      </button>
+
+      <h1>Campus Parking</h1>
+      <p>Welcome, {role}</p>
+      <p className="notice">
+        Demo data only — login and verification are not connected yet.
+      </p>
+
+      <div className="stats">
+        <div>Total Slots: {slots.length}</div>
+        <div>
+          Available: {slots.filter((s) => s.status === "Available").length}
         </div>
+        <div>
+          Occupied: {slots.filter((s) => s.status === "Occupied").length}
+        </div>
+      </div>
 
-        <section className="slots-section">
-          <div className="section-heading">
-            <div>
-              <h2>Parking slots</h2>
-              <p>Prototype preview — not live sensor data.</p>
-            </div>
-            <span className="prototype-label">DEMO DATA</span>
+      <h2>Campus Parking Slots</h2>
+
+      <div className="cards">
+        {slots.map((slot) => (
+          <div className="slot" key={slot.id}>
+            <h3>{slot.id}</h3>
+            <p>{slot.type} Parking</p>
+            <span className={slot.status === "Available" ? "available" : "occupied"}>
+              {slot.status}
+            </span>
           </div>
+        ))}
+      </div>
 
-          <div className="slots-grid">
-            {slots.map((slot) => (
-              <article className="slot-card" key={slot.id}>
-                <div className="slot-top">
-                  <span className="slot-icon">
-                    {slot.type === "Car" ? "🚘" : "🏍️"}
-                  </span>
-                  <span
-                    className={
-                      slot.status === "Available"
-                        ? "status available"
-                        : "status occupied"
-                    }
-                  >
-                    {slot.status}
-                  </span>
-                </div>
-                <h3>{slot.id}</h3>
-                <p>{slot.type} parking</p>
-
-                {slot.status === "Available" &&
-                  mode === "public" && (
-                    <button
-                      className="slot-button"
-                      onClick={() =>
-                        alert(
-                          "Booking will be connected to the backend in the next phase."
-                        )
-                      }
-                    >
-                      Book slot
-                    </button>
-                  )}
-
-                {mode === "campus" && (
-                  <p className="slot-note">Campus verification required</p>
-                )}
-              </article>
-            ))}
-          </div>
-        </section>
-
-        {mode === "campus" ? (
-          <section className="info-panel">
-            <h2>Campus parking rules</h2>
-            <p>
-              Campus parking does not support slot booking or paid parking.
-              Students, faculty and visitors follow the campus verification
-              process. Public availability is intended for visitors.
-            </p>
-          </section>
-        ) : (
-          <section className="info-panel">
-            <h2>Public parking services</h2>
-            <p>
-              Booking, waiting queue management, parking session tracking
-              and exit payment will be connected to the existing backend.
-              The final fee will be based on the parking duration and
-              configured rate.
-            </p>
-          </section>
-        )}
-      </section>
+      <p className="notice">
+        Campus parking does not require booking or payment.
+      </p>
     </main>
   );
 }
